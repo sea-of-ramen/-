@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>コメット探検家 算数クエスト (Pro)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Pixel Style) -->
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'DotGothic16', sans-serif;
+            background-color: #111827;
+            touch-action: manipulation; /* ダブルタップズーム防止 */
+        }
+        .pixel-corners {
+            image-rendering: pixelated;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .shake {
+            animation: shake 0.2s ease-in-out 2;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col justify-between select-none">
+
+    <!-- ヘッダー -->
+    <header class="bg-indigo-900 border-b-4 border-yellow-500 p-3 text-center shrink-0 relative">
+        <h1 class="text-xl md:text-3xl font-bold text-yellow-400 tracking-wider flex justify-center items-center gap-2">
+            ☄️ コメットたんけんか 算数クエスト ⚔️
+        </h1>
+        <!-- ミュージック簡易コントローラー -->
+        <button id="bgm-toggle-header" onclick="toggleBGM()" class="absolute right-3 top-3 bg-indigo-950 border-2 border-yellow-500 rounded-full p-1.5 text-xs text-yellow-400 hover:bg-indigo-900 active:scale-95 hidden md:block">
+            🎵 おんがく: OFF
+        </button>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow container mx-auto px-2 py-3 md:py-6 max-w-2xl flex flex-col justify-center">
+        
+        <!-- 画面1: モード選択画面 (メニュー) -->
+        <div id="screen-menu" class="space-y-4 my-auto">
+            <div class="bg-gray-800 border-4 border-white rounded-lg p-5 text-center shadow-2xl space-y-4">
+                <p class="text-lg md:text-xl text-gray-300">コメットたんけんかになって、けいサンのたびに出かけよう！</p>
+                
+                <!-- BGMコントロールボタン -->
+                <div class="flex justify-center gap-3">
+                    <button id="btn-play-bgm" onclick="startOpeningBGM()" class="bg-green-600 hover:bg-green-500 border-4 border-green-300 text-white font-bold py-2 px-4 rounded-xl text-sm md:text-base flex items-center gap-2 transition active:scale-95 shadow-md">
+                        🔊 おんがくを ならす 🎵
+                    </button>
+                    <button id="btn-stop-bgm" onclick="stopOpeningBGM()" class="bg-gray-600 hover:bg-gray-500 border-4 border-gray-400 text-white font-bold py-2 px-4 rounded-xl text-sm md:text-base flex items-center gap-2 transition active:scale-95 shadow-md">
+                        🔇 おんがくを とめる
+                    </button>
+                </div>
+
+                <p class="text-xs md:text-sm text-yellow-300 leading-relaxed">
+                    10もん せいかいするごとに レベルアップ！<br>
+                    <span class="text-rose-400 font-bold">🎉 Lv.5 で ぜんクリア！ とくべつなきょくがながれるぞ！</span><br>
+                    <span class="text-red-400 font-bold">⚠️ まちがいすぎたり、きめられた時間内にこたえられないと ダメージをうけるぞ！</span><br>
+                    <span class="text-amber-400 font-bold">⚡ Lv.5のこうはん（のこり5もん）は、せいげんじかんが 5びょう になるぞ！</span>
+                </p>
+                
+                <div class="grid grid-cols-1 gap-4 pt-2">
+                    <!-- たし算くりあがりボタン -->
+                    <button onclick="startGame('addition')" class="bg-rose-600 hover:bg-rose-500 border-4 border-rose-300 text-white font-bold py-5 px-4 rounded-xl text-xl md:text-2xl transition transform active:scale-95 shadow-lg flex flex-col items-center justify-center">
+                        <span>➕ たし算 くりあがり</span>
+                        <span class="text-xs text-rose-200 mt-1">(8 + 7 など)</span>
+                    </button>
+                    <!-- ひき算くりさがりボタン -->
+                    <button onclick="startGame('subtraction')" class="bg-cyan-600 hover:bg-cyan-500 border-4 border-cyan-300 text-white font-bold py-5 px-4 rounded-xl text-xl md:text-2xl transition transform active:scale-95 shadow-lg flex flex-col items-center justify-center">
+                        <span>➖ ひき算 くりさがり</span>
+                        <span class="text-xs text-cyan-200 mt-1">(15 - 8 など)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- コメット探探検家紹介エリア -->
+            <div class="bg-gray-900 border-4 border-yellow-600 rounded-lg p-4 flex items-center justify-around gap-4">
+                <div class="w-24 h-24 md:w-32 md:h-32 bg-black rounded-lg border-2 border-yellow-500 flex items-center justify-center shrink-0 overflow-hidden" id="menu-avatar-container">
+                    <!-- SVGアバターが入る -->
+                </div>
+                <div class="space-y-1 text-left flex-grow pl-2">
+                    <h3 class="text-lg md:text-xl font-bold text-yellow-400">コメットたんけんか</h3>
+                    <p class="text-xs md:text-sm text-gray-300">レベルがあがると、そうびが かっこよくなるぞ！</p>
+                    <div class="text-[10px] md:text-xs text-gray-400 space-y-0.5">
+                        <p>🟤 Lv1: たびびとのふく ＆ きのつえ (HP 5)</p>
+                        <p>⚪ Lv2: かわのよろい ＆ たんけん (HP 4)</p>
+                        <p>🔵 Lv3: くさりかたびら ＆ てつのつるぎ (HP 3)</p>
+                        <p>⚔️ Lv4: はがねのよろい ＆ はがねのつるぎ (HP 2)</p>
+                        <p>✨ Lv5: でんせつのよろい ＆ ひかりのつるぎ (HP 1・ラストスパート5秒制限！)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 画面2: ゲーム画面 -->
+        <div id="screen-game" class="hidden space-y-3">
+            <!-- 上部ステータスバー -->
+            <div class="bg-gray-800 border-4 border-white p-2 rounded-lg text-center text-xs md:text-sm space-y-1">
+                <div class="flex justify-between items-center px-2 font-bold">
+                    <div class="text-yellow-400"><span id="game-mode-name">--</span></div>
+                    <div class="text-green-400">Lv.<span id="game-level">1</span></div>
+                    <div class="text-rose-400">せいかい: <span id="game-score">0 / 10</span></div>
+                </div>
+                <!-- ライフゲージ (HP) -->
+                <div class="border-t border-gray-700 pt-1.5 flex justify-center items-center gap-1">
+                    <span class="text-red-500 font-bold text-[10px] md:text-xs">HP:</span>
+                    <div id="heart-container" class="flex gap-0.5 md:gap-1 text-base md:text-lg">
+                        <!-- ここに❤️が動的に入る -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- バトル＆グラフィック画面 -->
+            <div id="battle-stage" class="grid grid-cols-2 gap-2 bg-black border-4 border-white p-2 rounded-lg min-h-[140px] md:min-h-[180px] items-center relative overflow-hidden">
+                
+                <!-- 左: モンスター / 宿敵 -->
+                <div class="flex flex-col items-center justify-center">
+                    <div id="monster-container" class="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center">
+                        <!-- モンスターSVG -->
+                    </div>
+                    <span id="monster-name" class="mt-1 text-rose-500 font-bold text-xs md:text-sm">スライムスター</span>
+                </div>
+
+                <!-- 右: コメット探検家 -->
+                <div class="flex flex-col items-center justify-center border-l border-dashed border-gray-800">
+                    <div id="player-container" class="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center">
+                        <!-- 探検家SVG -->
+                    </div>
+                    <span class="mt-1 text-cyan-400 font-bold text-xs md:text-sm">たんけんか (Lv.<span id="avatar-level">1</span>)</span>
+                    <span id="weapon-name" class="text-[10px] md:text-xs text-yellow-500">きのつえ</span>
+                </div>
+
+                <!-- アクションエフェクト -->
+                <div id="action-effect" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-all duration-150 flex flex-col items-center justify-center text-xl md:text-2xl font-bold text-red-600 text-center"></div>
+            </div>
+
+            <!-- 計算問題エリア -->
+            <div class="bg-gray-800 border-4 border-white p-3 md:p-4 rounded-lg text-center space-y-3">
+                
+                <!-- 10秒/5秒カウントダウンタイマーバー -->
+                <div class="max-w-md mx-auto">
+                    <div class="w-full bg-gray-950 rounded-lg h-5 relative overflow-hidden border-2 border-gray-700">
+                        <div id="timer-bar" class="bg-green-500 h-full w-full transition-all duration-100 ease-linear"></div>
+                        <span id="timer-text" class="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white tracking-widest">じかん：10 びょう</span>
+                    </div>
+                </div>
+
+                <!-- 数式表示 -->
+                <div class="text-4xl md:text-5xl font-bold tracking-wider flex justify-center items-center gap-2 py-1">
+                    <span id="num1">0</span>
+                    <span id="operator">+</span>
+                    <span id="num2">0</span>
+                    <span>=</span>
+                    <span class="bg-gray-950 px-4 py-1.5 rounded border-2 border-dashed border-yellow-500 text-yellow-400 min-w-[70px]" id="answer-box">？</span>
+                </div>
+
+                <!-- さくらんぼ計算ヒント -->
+                <div class="max-w-lg mx-auto space-y-1">
+                    <button onclick="toggleHint()" id="btn-hint" class="bg-indigo-950 border border-indigo-400 text-[10px] md:text-xs text-indigo-300 px-3 py-1 rounded-md hover:bg-indigo-900 transition active:scale-95">
+                        💡 さくらんぼヒントをみる
+                    </button>
+                    <div id="hint-box-wrapper" class="hidden transition-all duration-300">
+                        <div id="hint-box" class="text-xs text-gray-300 bg-gray-900 p-2 rounded border border-gray-700 flex justify-center items-center">
+                            <!-- ヒントグラフィック -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- テンキー -->
+                <div class="max-w-md mx-auto">
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="pressKey(1)" class="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 border-b-4 border-gray-900 text-xl md:text-2xl font-bold py-3 md:py-4 rounded-xl">1</button>
+                        <button onclick="pressKey(2)" class="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 border-b-4 border-gray-900 text-xl md:text-2xl font-bold py-3 md:py-4 rounded-xl">2</button>
+                        <button onclick="pressKey(3)" class="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 border-b-4 border-gray-900 text-xl md:text-2xl font-bold py-3 md:py-4 rounded-xl">3</button>
+                        <button onclick="pressKey(4)" class="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 border-b-4 border-gray-900 text-xl md:text-2xl font-bold py-3 md:py-4 rounded-xl">4</button>
+                        <button onclick="pressKey(5)" class="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 border-b-4 border-gray-900 text-xl md:text-2xl font-bold py-3 md:py-4 rounded-xl">5</button>
+                        <button onclick="pressKey(6)" class="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 border-b-4 border-gray-900 text-xl md:text-2xl font-bold py-3 md:py-4 rounded-xl">6</button>
+                        <button onclick="pressKey(7)" class="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 border-b-4 border-gray-900 text-xl md:text-2xl font-bold py-3 md:py-4 rounded-xl">7</button>
+                        <button onclick="pressKey(8)" class="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 border-b-4 border-gray-900 text-xl md:text-2xl font-bold py-3 md:py-4 rounded-xl">8</button>
+                        <button onclick="pressKey(9)" class="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 border-b-4 border-gray-900 text-xl md:text-2xl font-bold py-3 md:py-4 rounded-xl">9</button>
+                        <button onclick="pressKey('C')" class="bg-red-700 hover:bg-red-600 active:bg-red-800 border-b-4 border-red-900 text-base md:text-lg font-bold py-3 md:py-4 rounded-xl">けす</button>
+                        <button onclick="pressKey(0)" class="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 border-b-4 border-gray-900 text-xl md:text-2xl font-bold py-3 md:py-4 rounded-xl">0</button>
+                        <button onclick="checkAnswer()" class="bg-green-600 hover:bg-green-500 active:bg-green-700 border-b-4 border-green-800 text-base md:text-lg font-bold py-3 md:py-4 rounded-xl">こたえ</button>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="returnToMenu()" class="text-gray-400 hover:text-white underline text-xs">もどる (メニューへ)</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- モーダル・演出用オーバーレイ -->
+    <div id="levelup-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-900 border-4 border-yellow-400 p-6 md:p-8 rounded-xl max-w-sm w-full text-center space-y-4 md:space-y-5">
+            <h2 class="text-2xl md:text-3xl font-bold text-yellow-400 animate-bounce" id="levelup-banner">LEVEL UP!!</h2>
+            <div id="modal-avatar-container" class="w-32 h-32 mx-auto bg-black border-2 border-yellow-500 flex items-center justify-center rounded">
+                <!-- レベルアップ後のSVGアバター -->
+            </div>
+            <div>
+                <p class="text-lg md:text-xl font-semibold text-yellow-300 animate-pulse" id="levelup-msg">レベルが 2 にあがった！</p>
+                <p class="text-xs md:text-sm text-green-400 font-semibold mt-1" id="levelup-submsg">あたらしい そうびを てにいれた！</p>
+            </div>
+
+            <!-- 音楽切り替えセレクトボックス -->
+            <div class="bg-gray-950 border-2 border-indigo-500 p-3 rounded-lg space-y-2">
+                <p class="text-[10px] text-gray-400 tracking-wider">🎵 レベルアップのおんがく</p>
+                <div class="flex items-center justify-center gap-1.5">
+                    <select id="fanfare-select" onchange="switchLevelUpMusic(this.value)" class="bg-indigo-950 border border-yellow-500 rounded px-2 py-1 text-xs text-yellow-300 focus:outline-none focus:ring-1 focus:ring-yellow-400 cursor-pointer">
+                        <option value="dq">ドラクエ風 (王道)</option>
+                        <option value="ff">ＦＦ風 (ファンタジー)</option>
+                        <option value="mario">マリオ風 (レトロクリア)</option>
+                        <option value="zelda">ゼルダ風 (なぞとき)</option>
+                        <option value="ode">歓喜の歌 (第九アレンジ)</option>
+                    </select>
+                    <button onclick="replayCurrentMusic()" class="bg-yellow-500 hover:bg-yellow-400 active:scale-95 text-gray-900 font-bold px-2 py-1 rounded text-xs transition">
+                        🔄 再生
+                    </button>
+                </div>
+            </div>
+
+            <button id="btn-next-level" onclick="closeLevelUpModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 border-b-4 border-indigo-900 text-white font-bold py-3 rounded-lg text-base md:text-lg">
+                つぎの たびへ！
+            </button>
+            <!-- 全クリア専用ボタン（通常は非表示） -->
+            <button id="btn-back-to-start" onclick="backToStart()" class="hidden w-full bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600 border-b-4 border-yellow-700 text-gray-900 font-bold py-3 rounded-lg text-base md:text-lg mt-2">
+                🏠 スタートにもどる
+            </button>
+        </div>
+    </div>
+
+    <!-- ゲームオーバーモーダル -->
+    <div id="gameover-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-950 border-4 border-red-600 p-6 md:p-8 rounded-xl max-w-sm w-full text-center space-y-4 md:space-y-6">
+            <h2 class="text-3xl font-bold text-red-500 tracking-wider">GAME OVER</h2>
+            <div class="w-24 h-24 mx-auto opacity-50">
+                <!-- 倒れた探検家風のシルエット -->
+                <svg viewBox="0 0 32 32" class="w-full h-full pixel-corners">
+                    <rect x="6" y="16" width="20" height="10" fill="#4b5563" />
+                    <rect x="12" y="8" width="8" height="8" fill="#9ca3af" />
+                    <line x1="14" y1="12" x2="18" y2="12" stroke="#000" stroke-width="2"/>
+                </svg>
+            </div>
+            <p class="text-base md:text-lg text-gray-300 leading-relaxed">
+                HPが 0 になってしまった！<br>
+                しゅぎょうを つんで、もういちど ちょうせんしよう！
+            </p>
+            <button onclick="resetGameToMenu()" class="w-full bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold py-3 rounded-lg text-base md:text-lg border-b-4 border-red-900">
+                はじめから やりなおす
+            </button>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <footer class="bg-gray-950 p-3 text-center text-[10px] text-gray-500 border-t border-gray-800 shrink-0">
+        &copy; 2026 コメットさんすうクエスト. All Rights Reserved.
+    </footer>
+
+    <!-- JavaScript ロジック -->
+    <script>
+        // --- 状態管理 ---
+        let currentMode = ''; 
+        let level = 1;
+        let score = 0; 
+        let lives = 5; 
+        
+        function getMaxLives(lv) { 
+            if (lv === 1) return 5;
+            if (lv === 2) return 4;
+            if (lv === 3) return 3;
+            if (lv === 4) return 2;
+            return 1; // Lv5 は極限の HP 1！
+        }
+        
+        let currentNum1 = 0;
+        let currentNum2 = 0;
+        let userInput = '';
+        let hintVisible = false; 
+
+        // タイマー状態管理
+        let timerInterval = null;
+        let timeLeft = 10;
+        let maxTime = 10; // 動的な制限時間の上限管理（10秒または5秒）
+
+        // BGM / SE管理用
+        let isBgmPlaying = false;
+        let isLevelUpModalOpen = false;
+
+        // --- Web Audio API 音響エンジン ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // 全周波数スケール
+        const Eb2 = 77.78, Ds2 = 77.78, F2 = 87.31, Gb2 = 92.50, Fs2 = 92.50, G2 = 98.00, Ab2 = 103.83, Gs2 = 103.83, A2 = 110.00, Bb2 = 116.54, As2 = 116.54, B2 = 123.47;
+        const C3 = 130.81, Db3 = 138.59, Cs3 = 138.59, D3 = 146.83, Eb3 = 155.56, Ds3 = 155.56, E3 = 164.81, F3 = 174.61, Gb3 = 185.00, Fs3 = 185.00, G3 = 196.00, Ab3 = 207.65, Gs3 = 207.65, A3 = 220.00, Bb3 = 233.08, As3 = 233.08, B3 = 246.94;
+        const C4 = 261.63, Db4 = 277.18, Cs4 = 277.18, D4 = 293.66, Eb4 = 311.13, Ds4 = 311.13, E4 = 329.63, F4 = 349.23, Gb4 = 369.99, Fs4 = 369.99, G4 = 392.00, Ab4 = 415.30, Gs4 = 415.30, A4 = 440.00, Bb4 = 466.16, As4 = 466.16, B4 = 493.88;
+        const C5 = 523.25, Db5 = 554.37, Cs5 = 554.37, D5 = 587.33, Eb5 = 622.25, Ds5 = 622.25, E5 = 659.25, F5 = 698.46, Gb5 = 739.99, Fs5 = 739.99, G5 = 783.99, Ab5 = 830.61, Gs5 = 830.61, A5 = 880.00, Bb5 = 932.33, As5 = 932.33, B5 = 987.77;
+        const C6 = 1046.50, Db6 = 1108.73, Cs6 = 1108.73, D6 = 1174.66, Eb6 = 1244.51, Ds6 = 1244.51, E6 = 1318.51, F6 = 1396.91, Gb6 = 1479.98, Fs6 = 1479.98, G6 = 1567.98, Ab6 = 1661.22, Gs6 = 1661.22, A6 = 1760.00, Bb6 = 1864.66, As6 = 1864.66, B6 = 1975.53;
+
+        let activeAudioNodes = [];
+        let activeTimeouts = [];
+
+        function registerActiveNode(node) {
+            activeAudioNodes.push(node);
+        }
+
+        // 音声完全消去
+        function clearAllSounds() {
+            activeTimeouts.forEach(clearTimeout);
+            activeTimeouts = [];
+            
+            activeAudioNodes.forEach(node => {
+                try {
+                    node.stop();
+                    node.disconnect();
+                } catch(e) {}
+            });
+            activeAudioNodes = [];
+        }
+
+        // 音量フェードアウト機能つき単音
+        function playToneWithRelease(freq, type, duration, delay = 0, vol = 0.08) {
+            const tId = setTimeout(() => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+                
+                registerActiveNode(osc);
+            }, delay * 1000);
+            activeTimeouts.push(tId);
+        }
+
+        // 周波数スライド
+        function playSlidingTone(startFreq, endFreq, type, duration, delay = 0, vol = 0.1) {
+            const tId = setTimeout(() => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(endFreq, audioCtx.currentTime + duration);
+                
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+                
+                registerActiveNode(osc);
+            }, delay * 1000);
+            activeTimeouts.push(tId);
+        }
+
+        // 効果音（正解）
+        function playCorrectSound() {
+            const vol = 0.08;
+            playToneWithRelease(523.25, 'triangle', 0.5, 0, vol); 
+            playToneWithRelease(659.25, 'triangle', 0.45, 0.08, vol); 
+            playToneWithRelease(783.99, 'triangle', 0.4, 0.16, vol); 
+            playToneWithRelease(1046.50, 'triangle', 0.5, 0.24, vol); 
+        }
+
+        // 効果音（ダメージ）
+        function playWrongSound() {
+            const duration = 0.25;
+            playSlidingTone(320, 40, 'sawtooth', duration, 0, 0.15);
+            playSlidingTone(330, 35, 'sawtooth', duration, 0.02, 0.12);
+            playToneWithRelease(Eb2, 'triangle', 0.3, 0, 0.15); 
+            playToneWithRelease(A2, 'triangle', 0.3, 0, 0.15); 
+        }
+
+        // 3声シーケンサー
+        function playAndRegisterMelody(notes, tempo, leadType = 'triangle', bassType = 'sine') {
+            clearAllSounds();
+            
+            let cumulativeTime = 0;
+            notes.forEach((note) => {
+                const playTime = cumulativeTime;
+                const noteDuration = note.d * tempo;
+
+                if (note.f > 0) registerTone(note.f, leadType, noteDuration + 0.05, playTime, 0.08); 
+                if (note.h > 0) registerTone(note.h, leadType, noteDuration + 0.05, playTime, 0.05); 
+                if (note.b > 0) registerTone(note.b, bassType, noteDuration + 0.05, playTime, 0.08); 
+
+                cumulativeTime += noteDuration;
+            });
+        }
+
+        function registerTone(freq, type, duration, delay, vol) {
+            const tId = setTimeout(() => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+                
+                registerActiveNode(osc);
+            }, delay * 1000);
+
+            activeTimeouts.push(tId);
+        }
+
+        // 1. ドラクエ風レベルアップ
+        function playDQFanfare() {
+            const tempo = 0.11;
+            const melody = [
+                { f: F4, h: A4, b: F3, d: 1 },
+                { f: G4, h: B4, b: G3, d: 1 },
+                { f: A4, h: C5, b: A3, d: 1 },
+                { f: Bb4, h: D5, b: Bb3, d: 1.5 },
+                { f: G4, h: B4, b: G3, d: 1 },
+                { f: A4, h: C5, b: A3, d: 1 },
+                { f: Bb4, h: D5, b: Bb3, d: 1.5 },
+                { f: C5, h: E5, b: C4, d: 2 },
+                { f: D5, h: F5, b: D4, d: 2 },
+                { f: E5, h: G5, b: C4, d: 2 },
+                { f: F5, h: A5, b: F3, d: 6 }
+            ];
+            playAndRegisterMelody(melody, tempo, 'triangle', 'sine');
+        }
+
+        // 2. ＦＦ風ファンファーレ
+        function playFFFanfare() {
+            const tempo = 0.10;
+            const melody = [
+                { f: C5, h: G4, b: C3, d: 1 },
+                { f: C5, h: G4, b: C3, d: 1 },
+                { f: C5, h: G4, b: C3, d: 1 },
+                { f: C5, h: G4, b: C3, d: 2 },
+                { f: Ab4, h: Eb4, b: Ab3, d: 1.5 },
+                { f: Bb4, h: F4, b: Bb3, d: 1.5 },
+                { f: C5, h: G4, b: C3, d: 3 },
+                { f: Bb4, h: F4, b: Bb3, d: 1 },
+                { f: C5, h: G4, b: C3, d: 6 }
+            ];
+            playAndRegisterMelody(melody, tempo, 'triangle', 'sine');
+        }
+
+        // 3. マリオ風クリアファンファーレ
+        function playMarioFanfare() {
+            const tempo = 0.09;
+            const melody = [
+                { f: C5, h: G4, b: C3, d: 1 },
+                { f: E5, h: C5, b: E3, d: 1 },
+                { f: G5, h: E5, b: G3, d: 1 },
+                { f: C6, h: G5, b: C4, d: 1 },
+                { f: E6, h: C6, b: E4, d: 1 },
+                { f: G6, h: G5, b: G4, d: 3 },
+                { f: E6, h: C6, b: E4, d: 1.5 },
+                { f: G6, h: G5, b: G4, d: 4 }
+            ];
+            playAndRegisterMelody(melody, tempo, 'square', 'triangle');
+        }
+
+        // 4. ゼルダの伝説風謎解き音
+        function playZeldaFanfare() {
+            const tempo = 0.085;
+            const melody = [
+                { f: G5, h: B4, b: G3, d: 1 },
+                { f: Fs5, h: Bb4, b: Gb3, d: 1 },
+                { f: Ds5, h: G4, b: Eb3, d: 1 },
+                { f: A4, h: Cs4, b: A2, d: 1 },
+                { f: Gs4, h: C4, b: Ab2, d: 1 },
+                { f: E5, h: G4, b: E3, d: 1 },
+                { f: Gs5, h: C5, b: Ab3, d: 1 },
+                { f: C6, h: E5, b: C4, d: 6 }
+            ];
+            playAndRegisterMelody(melody, tempo, 'sine', 'sine');
+        }
+
+        // 5. ベートーベン「歓喜の歌（第九）」
+        function playOdeToJoyBGM() {
+            const tempo = 0.28; 
+            const melody = [
+                { f: E5, b: C3, d: 1 }, { f: E5, b: C3, d: 1 }, { f: F5, b: F2, d: 1 }, { f: G5, b: G2, d: 1 },
+                { f: G5, b: G2, d: 1 }, { f: F5, b: F2, d: 1 }, { f: E5, b: C3, d: 1 }, { f: D5, b: G2, d: 1 },
+                { f: C5, b: C3, d: 1 }, { f: C5, b: C3, d: 1 }, { f: D5, b: G2, d: 1 }, { f: E5, b: C3, d: 1 },
+                { f: E5, b: C3, d: 1.5 }, { f: D5, b: G2, d: 0.5 }, { f: D5, b: G2, d: 2 },
+
+                { f: E5, b: C3, d: 1 }, { f: E5, b: C3, d: 1 }, { f: F5, b: F2, d: 1 }, { f: G5, b: G2, d: 1 },
+                { f: G5, b: G2, d: 1 }, { f: F5, b: F2, d: 1 }, { f: E5, b: C3, d: 1 }, { f: D5, b: G2, d: 1 },
+                { f: C5, b: C3, d: 1 }, { f: C5, b: C3, d: 1 }, { f: D5, b: G2, d: 1 }, { f: E5, b: C3, d: 1 },
+                { f: D5, b: G2, d: 1.5 }, { f: C5, b: C3, d: 0.5 }, { f: C5, b: C3, d: 3 }
+            ];
+            playAndRegisterMelody(melody, tempo, 'triangle', 'sine');
+        }
+
+        // ドラクエ「エンディング」風
+        function playEndingBGM() {
+            clearAllSounds();
+            const now = audioCtx.currentTime + 0.1;
+
+            const theme1 = [
+                [392,0.0,0.5],[440,0.55,0.5],[494,1.1,0.5],[523,1.65,0.8],
+                [494,2.5,0.4],[440,2.95,0.4],[392,3.4,0.8],
+                [523,4.3,0.5],[587,4.85,0.5],[659,5.4,0.5],[698,5.95,0.8],
+                [659,6.8,0.4],[587,7.25,0.4],[523,7.7,1.0],
+            ];
+
+            const theme2 = [
+                [523,9.0,0.3],[659,9.35,0.3],[784,9.7,0.3],[1047,10.05,0.6],
+                [987,10.7,0.3],[880,11.05,0.3],[784,11.4,0.6],
+                [698,12.1,0.3],[784,12.45,0.3],[880,12.8,0.6],
+                [784,13.5,0.3],[698,13.85,0.3],[659,14.2,0.3],[587,14.55,0.3],
+                [523,14.9,1.2],
+                [523,16.2,0.2],[523,16.45,0.2],[523,16.7,0.2],
+                [659,17.0,0.5],[784,17.55,0.5],[1047,18.1,1.5],
+            ];
+
+            const harmony = [
+                [261,0.0,0.5],[293,0.55,0.5],[329,1.1,0.5],[392,1.65,0.8],
+                [329,2.5,0.4],[293,2.95,0.4],[261,3.4,0.8],
+                [392,4.3,0.5],[440,4.85,0.5],[494,5.4,0.5],[523,5.95,0.8],
+                [494,6.8,0.4],[440,7.25,0.4],[392,7.7,1.0],
+                [392,9.0,0.3],[494,9.35,0.3],[587,9.7,0.3],[784,10.05,0.6],
+                [740,10.7,0.3],[659,11.05,0.3],[587,11.4,0.6],
+                [523,12.1,0.3],[587,12.45,0.3],[659,12.8,0.6],
+                [587,13.5,0.3],[523,13.85,0.3],[494,14.2,0.3],[440,14.55,0.3],
+                [392,14.9,1.2],
+                [392,16.2,0.2],[392,16.45,0.2],[392,16.7,0.2],
+                [494,17.0,0.5],[587,17.55,0.5],[784,18.1,1.5],
+            ];
+
+            const bass = [
+                [130,0.0,0.9],[87,0.95,0.9],[130,1.9,0.9],[65,2.85,1.2],
+                [130,4.1,0.9],[174,5.05,0.9],[130,6.0,0.9],[98,6.95,1.7],
+                [130,9.0,0.6],[196,9.65,0.6],[261,10.3,0.6],[130,10.95,1.0],
+                [196,12.0,0.6],[261,12.65,0.6],[329,13.3,0.6],[196,13.95,1.0],
+                [130,14.95,1.1],
+                [130,16.2,0.2],[130,16.45,0.2],[130,16.7,0.2],
+                [196,17.0,0.5],[261,17.55,0.5],[130,18.1,1.5],
+            ];
+
+            theme1.forEach(([freq, start, dur]) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.001, now + start);
+                gain.gain.linearRampToValueAtTime(0.075, now + start + 0.06);
+                gain.gain.setValueAtTime(0.1, now + start + dur - 0.08);
+                gain.gain.linearRampToValueAtTime(0.001, now + start + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now + start); osc.stop(now + start + dur + 0.1);
+                registerActiveNode(osc);
+            });
+
+            theme2.forEach(([freq, start, dur]) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.001, now + start);
+                gain.gain.linearRampToValueAtTime(0.05, now + start + 0.04);
+                gain.gain.setValueAtTime(0.075, now + start + dur - 0.06);
+                gain.gain.linearRampToValueAtTime(0.001, now + start + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now + start); osc.stop(now + start + dur + 0.1);
+                registerActiveNode(osc);
+            });
+
+            harmony.forEach(([freq, start, dur]) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.001, now + start);
+                gain.gain.linearRampToValueAtTime(0.035, now + start + 0.06);
+                gain.gain.setValueAtTime(0.05, now + start + dur - 0.06);
+                gain.gain.linearRampToValueAtTime(0.001, now + start + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now + start); osc.stop(now + start + dur + 0.1);
+                registerActiveNode(osc);
+            });
+
+            bass.forEach(([freq, start, dur]) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.001, now + start);
+                gain.gain.linearRampToValueAtTime(0.025, now + start + 0.05);
+                gain.gain.setValueAtTime(0.04, now + start + dur - 0.07);
+                gain.gain.linearRampToValueAtTime(0.001, now + start + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now + start); osc.stop(now + start + dur + 0.1);
+                registerActiveNode(osc);
+            });
+        }
+
+        // ゲームオーバーBGM
+        function playGameOverBGM() {
+            clearAllSounds();
+            const tempo = 0.2;
+            const melody = [
+                { f: C4, h: Eb4, b: C3, d: 1.25 },
+                { f: B3, h: D4, b: G2, d: 1.25 },
+                { f: Bb3, h: Db4, b: C3, d: 1.25 },
+                { f: A3, h: C4, b: F2, d: 1.5 },
+                { f: Ab3, h: B3, b: Bb2, d: 1.5 },
+                { f: G3, h: B3, b: Eb2, d: 4 }
+            ];
+
+            let cumulativeTime = 0;
+            melody.forEach((note) => {
+                const playTime = cumulativeTime;
+                const noteDuration = note.d * tempo;
+                
+                if (note.f > 0) playToneWithRelease(note.f, 'sawtooth', noteDuration + 0.05, playTime, 0.08); 
+                if (note.h > 0) playToneWithRelease(note.h, 'sawtooth', noteDuration + 0.05, playTime, 0.06); 
+                if (note.b > 0) playToneWithRelease(note.b, 'triangle', noteDuration + 0.05, playTime, 0.08); 
+                
+                cumulativeTime += noteDuration * 1.2;
+            });
+        }
+
+        function startOpeningBGM() {
+            if (isBgmPlaying) return; 
+            isBgmPlaying = true;
+            
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            clearAllSounds();
+
+            const now = audioCtx.currentTime + 0.05;
+            const t = 0.11; // 1拍（8分音符）の長さ
+
+            const melody = [
+                // イントロ (G4連打：12拍)
+                [G4, 0*t, 1*t],[G4, 1*t, 1*t],[G4, 2*t, 1*t],[G4, 3*t, 1*t],[G4, 4*t, 1*t],[G4, 5*t, 1*t],
+                [G4, 6*t, 1*t],[G4, 7*t, 1*t],[G4, 8*t, 1*t],[G4, 9*t, 1*t],[G4, 10*t, 1*t],[G4, 11*t, 1*t],
+                // 主題A (私は町の何でも屋テーマ：48拍)
+                [G4, 12*t, 1*t],[G4, 13*t, 1*t],[G4, 14*t, 1*t],[G4, 15*t, 1*t],[A4, 16*t, 1*t],[B4, 17*t, 1*t],
+                [C5, 18*t, 2*t],[C5, 20*t, 1*t],[C5, 21*t, 1*t],[D5, 22*t, 1*t],[E5, 23*t, 1*t],
+                [F5, 24*t, 2*t],[F5, 26*t, 1*t],[F5, 27*t, 1*t],[G5, 28*t, 1*t],[A5, 29*t, 1*t],
+                [G5, 30*t, 1*t],[F5, 31*t, 1*t],[E5, 32*t, 1*t],[D5, 33*t, 1*t],[C5, 34*t, 1*t],[B4, 35*t, 1*t],
+                // フィガロ！フィガロ！フィガロ！
+                [C5, 36*t, 1*t],[C5, 37*t, 1*t],[C5, 38*t, 1*t],[C5, 39*t, 3*t],
+                [D5, 42*t, 1*t],[D5, 43*t, 1*t],[D5, 44*t, 1*t],[D5, 45*t, 3*t],
+                [E5, 48*t, 1*t],[E5, 49*t, 1*t],[E5, 50*t, 1*t],[E5, 51*t, 1*t],[F5, 52*t, 1*t],[G5, 53*t, 1*t],
+                [A5, 54*t, 2*t],[G5, 56*t, 2*t],[F5, 58*t, 2*t],
+                // 展開B (コミカルな上昇展開：48拍)
+                [C5, 60*t, 1*t],[B4, 61*t, 1*t],[A4, 62*t, 1*t],[G4, 63*t, 1*t],[F4, 64*t, 1*t],[E4, 65*t, 1*t],
+                [D4, 66*t, 1*t],[E4, 67*t, 1*t],[F4, 68*t, 1*t],[G4, 69*t, 1*t],[A4, 70*t, 1*t],[B4, 71*t, 1*t],
+                [C5, 72*t, 2*t],[C5, 74*t, 1*t],[C5, 75*t, 1*t],[C5, 76*t, 2*t],
+                [D5, 78*t, 2*t],[D5, 80*t, 1*t],[D5, 81*t, 1*t],[D5, 82*t, 2*t],
+                [E5, 84*t, 1*t],[E5, 85*t, 1*t],[E5, 86*t, 1*t],[E5, 87*t, 3*t],
+                [F5, 90*t, 1*t],[F5, 91*t, 1*t],[F5, 92*t, 1*t],[F5, 93*t, 3*t],
+                [G5, 96*t, 1*t],[A5, 97*t, 1*t],[B5, 98*t, 1*t],[C6, 99*t, 3*t],
+                [B5, 102*t, 1*t],[A5, 103*t, 1*t],[G5, 104*t, 1*t],[F5, 105*t, 3*t],
+                // 歌い上げC (ブラーヴォ！フィガロ！掛け合い：48拍)
+                [E5, 108*t, 1*t],[D5, 109*t, 1*t],[C5, 110*t, 1*t],[B4, 111*t, 1*t],[C5, 112*t, 2*t],
+                [D5, 114*t, 1*t],[C5, 115*t, 1*t],[B4, 116*t, 1*t],[A4, 117*t, 1*t],[B4, 118*t, 2*t],
+                [C5, 120*t, 1*t],[C5, 121*t, 1*t],[C5, 122*t, 1*t],[E5, 123*t, 3*t],
+                [D5, 126*t, 1*t],[D5, 127*t, 1*t],[D5, 128*t, 1*t],[F5, 129*t, 3*t],
+                [E5, 132*t, 1*t],[E5, 133*t, 1*t],[E5, 134*t, 1*t],[G5, 135*t, 3*t],
+                [F5, 138*t, 1*t],[F5, 139*t, 1*t],[F5, 140*t, 1*t],[A5, 141*t, 3*t],
+                [G5, 144*t, 1*t],[G5, 145*t, 1*t],[G5, 146*t, 1*t],[B5, 147*t, 3*t],
+                [C6, 150*t, 1*t],[C6, 151*t, 1*t],[C6, 152*t, 1*t],[C6, 153*t, 3*t],
+                // 華やかなエンディング結び (36拍)
+                [C6, 156*t, 1*t],[C6, 157*t, 1*t],[C6, 158*t, 1*t],[C6, 159*t, 1*t],[C6, 160*t, 1*t],[C6, 161*t, 1*t],
+                [D6, 162*t, 1*t],[D6, 163*t, 1*t],[D6, 164*t, 1*t],[D6, 165*t, 1*t],[D6, 166*t, 1*t],[D6, 167*t, 1*t],
+                [E6, 168*t, 1*t],[E6, 169*t, 1*t],[E6, 170*t, 1*t],[F6, 171*t, 1*t],[G6, 172*t, 1*t],[A6, 173*t, 1*t],
+                [G6, 174*t, 3*t],[F6, 177*t, 3*t],
+                [E6, 180*t, 3*t],[D6, 183*t, 3*t],[C6, 186*t, 6*t]
+            ];
+
+            const harmony = [
+                // イントロ
+                [B3, 0*t, 1*t],[B3, 1*t, 1*t],[B3, 2*t, 1*t],[B3, 3*t, 1*t],[B3, 4*t, 1*t],[B3, 5*t, 1*t],
+                [B3, 6*t, 1*t],[B3, 7*t, 1*t],[B3, 8*t, 1*t],[B3, 9*t, 1*t],[B3, 10*t, 1*t],[B3, 11*t, 1*t],
+                // 主題A
+                [E4, 12*t, 1*t],[E4, 13*t, 1*t],[E4, 14*t, 1*t],[E4, 15*t, 1*t],[F4, 16*t, 1*t],[G4, 17*t, 1*t],
+                [E4, 18*t, 2*t],[E4, 20*t, 1*t],[E4, 21*t, 1*t],[F4, 22*t, 1*t],[G4, 23*t, 1*t],
+                [A4, 24*t, 2*t],[A4, 26*t, 1*t],[A4, 27*t, 1*t],[B4, 28*t, 1*t],[C5, 29*t, 1*t],
+                [B4, 30*t, 1*t],[A4, 31*t, 1*t],[G4, 32*t, 1*t],[F4, 33*t, 1*t],[E4, 34*t, 1*t],[D4, 35*t, 1*t],
+                // フィガロセクションA
+                [E4, 36*t, 1*t],[E4, 37*t, 1*t],[E4, 38*t, 1*t],[E4, 39*t, 3*t],
+                [Fs4, 42*t, 1*t],[Fs4, 43*t, 1*t],[Fs4, 44*t, 1*t],[Fs4, 45*t, 3*t],
+                [G4, 48*t, 1*t],[G4, 49*t, 1*t],[G4, 50*t, 1*t],[G4, 51*t, 1*t],[A4, 52*t, 1*t],[B4, 53*t, 1*t],
+                [C5, 54*t, 2*t],[B4, 56*t, 2*t],[A4, 58*t, 2*t],
+                // 展開B
+                [A4, 60*t, 1*t],[G4, 61*t, 1*t],[F4, 62*t, 1*t],[E4, 63*t, 1*t],[D4, 64*t, 1*t],[C4, 65*t, 1*t],
+                [B3, 66*t, 1*t],[C4, 67*t, 1*t],[D4, 68*t, 1*t],[E4, 69*t, 1*t],[F4, 70*t, 1*t],[G4, 71*t, 1*t],
+                [A4, 72*t, 2*t],[A4, 74*t, 1*t],[A4, 75*t, 1*t],[A4, 76*t, 2*t],
+                [B4, 78*t, 2*t],[B4, 80*t, 1*t],[B4, 81*t, 1*t],[B4, 82*t, 2*t],
+                [C5, 84*t, 1*t],[C5, 85*t, 1*t],[C5, 86*t, 1*t],[C5, 87*t, 3*t],
+                [D5, 90*t, 1*t],[D5, 91*t, 1*t],[D5, 92*t, 1*t],[D5, 93*t, 3*t],
+                [E5, 96*t, 1*t],[F5, 97*t, 1*t],[G5, 98*t, 1*t],[A5, 99*t, 3*t],
+                [G5, 102*t, 1*t],[F5, 103*t, 1*t],[E5, 104*t, 1*t],[D5, 105*t, 3*t],
+                // 歌い上げC
+                [C5, 108*t, 1*t],[B4, 109*t, 1*t],[A4, 110*t, 1*t],[G4, 111*t, 1*t],[A4, 112*t, 2*t],
+                [B4, 114*t, 1*t],[A4, 115*t, 1*t],[G4, 116*t, 1*t],[F4, 117*t, 1*t],[G4, 118*t, 2*t],
+                [A4, 120*t, 1*t],[A4, 121*t, 1*t],[A4, 122*t, 1*t],[C5, 123*t, 3*t],
+                [B4, 126*t, 1*t],[B4, 127*t, 1*t],[B4, 128*t, 1*t],[D5, 129*t, 3*t],
+                [C5, 132*t, 1*t],[C5, 133*t, 1*t],[C5, 134*t, 1*t],[E5, 135*t, 3*t],
+                [D5, 138*t, 1*t],[D5, 139*t, 1*t],[D5, 140*t, 1*t],[F5, 141*t, 3*t],
+                [E5, 144*t, 1*t],[E5, 145*t, 1*t],[E5, 146*t, 1*t],[G5, 147*t, 3*t],
+                [A5, 150*t, 1*t],[A5, 151*t, 1*t],[A5, 152*t, 1*t],[A5, 153*t, 3*t],
+                // アウトロ
+                [A5, 156*t, 1*t],[A5, 157*t, 1*t],[A5, 158*t, 1*t],[A5, 159*t, 1*t],[A5, 160*t, 1*t],[A5, 161*t, 1*t],
+                [B5, 162*t, 1*t],[B5, 163*t, 1*t],[B5, 164*t, 1*t],[B5, 165*t, 1*t],[B5, 166*t, 1*t],[B5, 167*t, 1*t],
+                [C6, 168*t, 1*t],[C6, 169*t, 1*t],[C6, 170*t, 1*t],[D6, 171*t, 1*t],[E6, 172*t, 1*t],[F6, 173*t, 1*t],
+                [E6, 174*t, 3*t],[D6, 177*t, 3*t],
+                [C6, 180*t, 3*t],[B5, 183*t, 3*t],[G5, 186*t, 6*t]
+            ];
+
+            const bass = [
+                // イントロ
+                [G2, 0*t, 3*t],[G2, 3*t, 3*t],[G2, 6*t, 3*t],[G2, 9*t, 3*t],
+                // 主題A
+                [C3, 12*t, 1*t],[E3, 14*t, 1*t],[G3, 16*t, 1*t],
+                [C3, 18*t, 1*t],[E3, 20*t, 1*t],[G3, 22*t, 1*t],
+                [F3, 24*t, 1*t],[A3, 26*t, 1*t],[C4, 28*t, 1*t],
+                [G3, 30*t, 1*t],[B3, 32*t, 1*t],[D4, 34*t, 1*t],
+                // フィガロセクションA
+                [C3, 36*t, 3*t],[G3, 39*t, 3*t],
+                [G3, 42*t, 3*t],[D3, 45*t, 3*t],
+                [C3, 48*t, 1*t],[E3, 50*t, 1*t],[G3, 52*t, 1*t],
+                [F3, 54*t, 2*t],[G3, 56*t, 2*t],[G3, 58*t, 2*t],
+                // 展開B
+                [F3, 60*t, 3*t],[C3, 63*t, 3*t],
+                [G3, 66*t, 3*t],[D3, 69*t, 3*t],
+                [C3, 72*t, 3*t],[F3, 75*t, 3*t],
+                [G3, 78*t, 3*t],[G2, 81*t, 3*t],
+                [C3, 84*t, 3*t],[C3, 87*t, 3*t],
+                [G3, 90*t, 3*t],[G3, 93*t, 3*t],
+                [C3, 96*t, 1*t],[E3, 98*t, 1*t],[G3, 100*t, 1*t],
+                [F3, 102*t, 2*t],[G3, 104*t, 2*t],[G2, 106*t, 2*t],
+                // 歌い上げC
+                [C3, 108*t, 3*t],[G3, 111*t, 3*t],
+                [D3, 114*t, 3*t],[G3, 117*t, 3*t],
+                [C3, 120*t, 3*t],[C3, 123*t, 3*t],
+                [D3, 126*t, 3*t],[D3, 129*t, 3*t],
+                [E3, 132*t, 3*t],[E3, 135*t, 3*t],
+                [F3, 138*t, 3*t],[F3, 141*t, 3*t],
+                [G3, 144*t, 3*t],[G3, 147*t, 3*t],
+                [C3, 150*t, 3*t],[C3, 153*t, 3*t],
+                // アウトロ
+                [F3, 156*t, 3*t],[C3, 159*t, 3*t],
+                [G3, 162*t, 3*t],[D3, 165*t, 3*t],
+                [C3, 168*t, 1*t],[E3, 170*t, 1*t],[G3, 172*t, 1*t],
+                [F3, 174*t, 3*t],[G3, 177*t, 3*t],
+                [C3, 180*t, 3*t],[G3, 183*t, 3*t],[C3, 186*t, 6*t]
+            ];
+
+            const drums = [
+                0, 3*t, 6*t, 9*t, 12*t, 15*t, 18*t, 21*t, 24*t, 27*t, 30*t, 33*t, 36*t, 39*t, 42*t, 45*t, 48*t, 51*t, 54*t, 57*t, 60*t,
+                63*t, 66*t, 69*t, 72*t, 75*t, 78*t, 81*t, 84*t, 87*t, 90*t, 93*t, 96*t, 99*t, 102*t, 105*t, 108*t, 111*t, 114*t, 117*t,
+                120*t, 123*t, 126*t, 129*t, 132*t, 135*t, 138*t, 141*t, 144*t, 147*t, 150*t, 153*t, 156*t, 159*t, 162*t, 165*t, 168*t,
+                171*t, 174*t, 177*t, 180*t, 183*t, 186*t, 189*t
+            ];
+
+            const totalDuration = 192 * t; // 約21.12秒
+
+            melody.forEach(([freq, start, dur]) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.001, now + start);
+                gain.gain.linearRampToValueAtTime(0.05, now + start + 0.02);
+                gain.gain.setValueAtTime(0.06, now + start + dur - 0.03);
+                gain.gain.linearRampToValueAtTime(0.001, now + start + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now + start); osc.stop(now + start + dur + 0.05);
+                registerActiveNode(osc);
+            });
+
+            harmony.forEach(([freq, start, dur]) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.001, now + start);
+                gain.gain.linearRampToValueAtTime(0.03, now + start + 0.02);
+                gain.gain.setValueAtTime(0.04, now + start + dur - 0.03);
+                gain.gain.linearRampToValueAtTime(0.001, now + start + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now + start); osc.stop(now + start + dur + 0.05);
+                registerActiveNode(osc);
+            });
+
+            bass.forEach(([freq, start, dur]) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.001, now + start);
+                gain.gain.linearRampToValueAtTime(0.02, now + start + 0.03);
+                gain.gain.setValueAtTime(0.03, now + start + dur - 0.04);
+                gain.gain.linearRampToValueAtTime(0.001, now + start + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now + start); osc.stop(now + start + dur + 0.05);
+                registerActiveNode(osc);
+            });
+
+            drums.forEach(start => {
+                const bufSize = audioCtx.sampleRate * 0.05;
+                const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i/bufSize);
+                const src = audioCtx.createBufferSource();
+                src.buffer = buf;
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.045;
+                src.connect(gain); gain.connect(audioCtx.destination);
+                src.start(now + start);
+                registerActiveNode(src);
+            });
+
+            document.getElementById('btn-play-bgm').innerText = "🔊 さいせい中 🎵";
+            document.getElementById('btn-play-bgm').classList.add('bg-green-700');
+            document.getElementById('bgm-toggle-header').innerText = "🎵 おんがく: ON";
+
+            const tId = setTimeout(() => {
+                isBgmPlaying = false;
+                document.getElementById('btn-play-bgm').innerText = "🔊 おんがくを ならす 🎵";
+                document.getElementById('btn-play-bgm').classList.remove('bg-green-700');
+            }, (totalDuration + 0.3) * 1000);
+            activeTimeouts.push(tId);
+        }
+
+        function stopOpeningBGM() {
+            isBgmPlaying = false;
+            clearAllSounds();
+            document.getElementById('btn-play-bgm').innerText = "🔊 おんがくを ならす 🎵";
+            document.getElementById('btn-play-bgm').classList.remove('bg-green-700');
+            document.getElementById('bgm-toggle-header').innerText = "🎵 おんがく: OFF";
+        }
+
+        function toggleBGM() {
+            if (isBgmPlaying) {
+                stopOpeningBGM();
+            } else {
+                startOpeningBGM();
+            }
+        }
+
+        // --- モンスターSVG生成 ---
+        function getMonsterSVG(id) {
+            const svgs = {
+                'slime-star': `<svg viewBox="0 0 64 64" class="w-full h-full pixel-corners" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="32" cy="38" rx="22" ry="18" fill="#60a5fa"/>
+                    <ellipse cx="32" cy="36" rx="20" ry="16" fill="#93c5fd"/>
+                    <polygon points="32,20 34,27 41,27 35,31 37,38 32,34 27,38 29,31 23,27 30,27" fill="#fbbf24" opacity="0.9"/>
+                    <ellipse cx="25" cy="36" rx="4" ry="5" fill="white"/>
+                    <ellipse cx="39" cy="36" rx="4" ry="5" fill="white"/>
+                    <circle cx="26" cy="37" r="2.5" fill="#1e40af"/>
+                    <circle cx="40" cy="37" r="2.5" fill="#1e40af"/>
+                    <circle cx="27" cy="36" r="1" fill="white"/>
+                    <circle cx="41" cy="36" r="1" fill="white"/>
+                    <path d="M 26 44 Q 32 49 38 44" stroke="#1e40af" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <polygon points="22,22 18,12 26,18" fill="#3b82f6"/>
+                    <polygon points="42,22 46,12 38,18" fill="#3b82f6"/>
+                    <ellipse cx="22" cy="28" rx="4" ry="3" fill="white" opacity="0.4"/>
+                </svg>`,
+                'drakey-meteor': `<svg viewBox="0 0 64 64" class="w-full h-full pixel-corners" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 32 30 Q 10 18 4 28 Q 8 36 20 34 Z" fill="#7c3aed"/>
+                    <path d="M 20 34 Q 12 40 8 38 Q 10 44 18 40 Z" fill="#6d28d9"/>
+                    <path d="M 32 30 Q 54 18 60 28 Q 56 36 44 34 Z" fill="#7c3aed"/>
+                    <path d="M 44 34 Q 52 40 56 38 Q 54 44 46 40 Z" fill="#6d28d9"/>
+                    <ellipse cx="32" cy="36" rx="14" ry="16" fill="#8b5cf6"/>
+                    <ellipse cx="32" cy="34" rx="12" ry="13" fill="#a78bfa"/>
+                    <polygon points="22,22 18,10 28,20" fill="#7c3aed"/>
+                    <polygon points="42,22 46,10 36,20" fill="#7c3aed"/>
+                    <ellipse cx="26" cy="33" rx="4" ry="4.5" fill="#fee2e2"/>
+                    <ellipse cx="38" cy="33" rx="4" ry="4.5" fill="#fee2e2"/>
+                    <circle cx="27" cy="34" r="2.5" fill="#dc2626"/>
+                    <circle cx="39" cy="34" r="2.5" fill="#dc2626"/>
+                    <circle cx="28" cy="33" r="1" fill="#fca5a5"/>
+                    <circle cx="40" cy="33" r="1" fill="#fca5a5"/>
+                    <polygon points="28,44 26,52 30,44" fill="white"/>
+                    <polygon points="34,44 32,52 36,44" fill="white"/>
+                    <line x1="50" y1="10" x2="58" y2="4" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+                    <line x1="54" y1="14" x2="62" y2="10" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+                </svg>`,
+                'golem-stone': `<svg viewBox="0 0 64 64" class="w-full h-full pixel-corners" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="16" y="26" width="32" height="28" rx="6" fill="#78716c"/>
+                    <rect x="18" y="24" width="28" height="26" rx="5" fill="#a8a29e"/>
+                    <rect x="4" y="28" width="14" height="10" rx="5" fill="#78716c"/>
+                    <rect x="5" y="29" width="12" height="8" rx="4" fill="#a8a29e"/>
+                    <rect x="46" y="28" width="14" height="10" rx="5" fill="#78716c"/>
+                    <rect x="47" y="29" width="12" height="8" rx="4" fill="#a8a29e"/>
+                    <rect x="18" y="10" width="28" height="22" rx="8" fill="#78716c"/>
+                    <rect x="20" y="8" width="24" height="20" rx="7" fill="#a8a29e"/>
+                    <rect x="22" y="14" width="8" height="6" rx="2" fill="#f97316"/>
+                    <rect x="34" y="14" width="8" height="6" rx="2" fill="#f97316"/>
+                    <rect x="24" y="15" width="4" height="4" rx="1" fill="#fed7aa"/>
+                    <rect x="36" y="15" width="4" height="4" rx="1" fill="#fed7aa"/>
+                    <rect x="24" y="24" width="16" height="4" rx="1" fill="#292524"/>
+                    <rect x="26" y="24" width="3" height="4" fill="#e7e5e4"/>
+                    <rect x="31" y="24" width="3" height="4" fill="#e7e5e4"/>
+                    <rect x="36" y="24" width="3" height="4" fill="#e7e5e4"/>
+                    <path d="M 26 10 L 24 16 L 28 20" stroke="#57534e" stroke-width="1.5" fill="none"/>
+                    <path d="M 38 12 L 40 18" stroke="#57534e" stroke-width="1.5" fill="none"/>
+                    <rect x="20" y="50" width="10" height="10" rx="3" fill="#78716c"/>
+                    <rect x="34" y="50" width="10" height="10" rx="3" fill="#78716c"/>
+                </svg>`,
+                'devil-comet': `<svg viewBox="0 0 64 64" class="w-full h-full pixel-corners" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 20 32 Q 4 20 2 34 Q 6 46 18 42 Z" fill="#be185d"/>
+                    <path d="M 44 32 Q 60 20 62 34 Q 58 46 46 42 Z" fill="#be185d"/>
+                    <ellipse cx="32" cy="38" rx="16" ry="18" fill="#ec4899"/>
+                    <ellipse cx="32" cy="36" rx="14" ry="15" fill="#f472b6"/>
+                    <path d="M 32 54 Q 42 60 46 56 Q 44 62 38 60" stroke="#be185d" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <polygon points="46,56 50,60 44,62" fill="#be185d"/>
+                    <ellipse cx="32" cy="24" rx="13" ry="12" fill="#ec4899"/>
+                    <ellipse cx="32" cy="22" rx="11" ry="10" fill="#f472b6"/>
+                    <polygon points="22,16 16,4 26,14" fill="#be185d"/>
+                    <polygon points="42,16 48,4 38,14" fill="#be185d"/>
+                    <ellipse cx="26" cy="22" rx="3" ry="3.5" fill="#fbbf24"/>
+                    <ellipse cx="38" cy="22" rx="3" ry="3.5" fill="#fbbf24"/>
+                    <circle cx="26" cy="23" r="1.5" fill="#292524"/>
+                    <circle cx="38" cy="23" r="1.5" fill="#292524"/>
+                    <path d="M 24 30 Q 32 36 40 30" stroke="#be185d" stroke-width="2" fill="none"/>
+                    <polygon points="28,30 26,36 30,30" fill="white"/>
+                    <polygon points="36,30 34,36 38,30" fill="white"/>
+                    <ellipse cx="50" cy="12" rx="5" ry="5" fill="#fbbf24" opacity="0.6"/>
+                    <path d="M 45 16 Q 36 22 30 30" stroke="#fbbf24" stroke-width="2" fill="none" opacity="0.4"/>
+                </svg>`,
+                'chaos-kaiser': `<svg viewBox="0 0 64 64" class="w-full h-full pixel-corners" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 22 30 Q 2 14 0 28 Q 2 44 18 40 Z" fill="#065f46"/>
+                    <line x1="22" y1="30" x2="4" y2="22" stroke="#34d399" stroke-width="1.5"/>
+                    <line x1="20" y1="34" x2="6" y2="30" stroke="#34d399" stroke-width="1"/>
+                    <path d="M 42 30 Q 62 14 64 28 Q 62 44 46 40 Z" fill="#065f46"/>
+                    <line x1="42" y1="30" x2="60" y2="22" stroke="#34d399" stroke-width="1.5"/>
+                    <line x1="44" y1="34" x2="58" y2="30" stroke="#34d399" stroke-width="1"/>
+                    <rect x="16" y="34" width="32" height="22" rx="6" fill="#064e3b"/>
+                    <rect x="18" y="32" width="28" height="20" rx="5" fill="#065f46"/>
+                    <rect x="20" y="34" width="10" height="8" rx="2" fill="#047857"/>
+                    <rect x="34" y="34" width="10" height="8" rx="2" fill="#047857"/>
+                    <rect x="22" y="44" width="20" height="6" rx="2" fill="#047857"/>
+                    <circle cx="32" cy="42" r="5" fill="#10b981"/>
+                    <circle cx="32" cy="42" r="3" fill="#34d399"/>
+                    <circle cx="32" cy="42" r="1.5" fill="white"/>
+                    <rect x="18" y="12" width="28" height="24" rx="8" fill="#064e3b"/>
+                    <rect x="20" y="10" width="24" height="22" rx="7" fill="#065f46"/>
+                    <rect x="22" y="16" width="20" height="10" rx="3" fill="#1c1917"/>
+                    <rect x="23" y="17" width="18" height="8" rx="2" fill="#0f172a"/>
+                    <rect x="24" y="18" width="7" height="6" rx="2" fill="#10b981"/>
+                    <rect x="33" y="18" width="7" height="6" rx="2" fill="#10b981"/>
+                    <rect x="25" y="19" width="5" height="4" rx="1" fill="#34d399"/>
+                    <rect x="34" y="19" width="5" height="4" rx="1" fill="#34d399"/>
+                    <line x1="24" y1="21" x2="31" y2="21" stroke="white" stroke-width="1" opacity="0.8"/>
+                    <line x1="33" y1="21" x2="40" y2="21" stroke="white" stroke-width="1" opacity="0.8"/>
+                    <rect x="22" y="4" width="3" height="10" rx="1" fill="#059669"/>
+                    <circle cx="23" cy="4" r="2.5" fill="#10b981"/>
+                    <rect x="39" y="4" width="3" height="10" rx="1" fill="#059669"/>
+                    <circle cx="40" cy="4" r="2.5" fill="#10b981"/>
+                    <rect x="24" y="28" width="16" height="5" rx="2" fill="#1c1917"/>
+                    <rect x="28" y="29" width="8" height="3" rx="1" fill="#10b981"/>
+                    <ellipse cx="8" cy="38" rx="6" ry="2.5" fill="#10b981" opacity="0.5"/>
+                    <ellipse cx="4" cy="38" rx="3" ry="1.5" fill="#34d399" opacity="0.4"/>
+                    <rect x="20" y="54" width="10" height="8" rx="3" fill="#064e3b"/>
+                    <rect x="34" y="54" width="10" height="8" rx="3" fill="#064e3b"/>
+                </svg>`
+            };
+            return svgs[id] || svgs['slime-star'];
+        }
+
+        // --- 探検家アバター（Lv1〜5） ---
+        function getAvatarSVG(lvl) {
+            // Lv1: 見習い
+            if (lvl <= 1) { 
+                return `<svg viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg" class="w-full h-full pixel-corners">
+                  <ellipse cx="32" cy="78" rx="14" ry="3" fill="#00000033"/>
+                  <path d="M 22 34 Q 14 46 16 62 Q 20 56 24 50 Z" fill="#1d4ed8" opacity="0.7"/>
+                  <path d="M 42 34 Q 50 46 48 62 Q 44 56 40 50 Z" fill="#1e40af" opacity="0.7"/>
+                  <rect x="22" y="36" width="20" height="22" rx="3" fill="#78350f"/>
+                  <rect x="24" y="36" width="16" height="20" rx="2" fill="#92400e"/>
+                  <rect x="22" y="50" width="20" height="4" rx="1" fill="#451a03"/>
+                  <rect x="29" y="49" width="6" height="6" rx="1" fill="#a16207"/>
+                  <circle cx="32" cy="38" r="3" fill="#1d4ed8"/>
+                  <rect x="14" y="36" width="9" height="8" rx="3" fill="#92400e"/>
+                  <rect x="14" y="44" width="7" height="6" rx="2" fill="#fde68a"/>
+                  <rect x="41" y="36" width="9" height="8" rx="3" fill="#92400e"/>
+                  <rect x="43" y="44" width="7" height="6" rx="2" fill="#fde68a"/>
+                  <rect x="24" y="56" width="7" height="10" rx="2" fill="#451a03"/>
+                  <rect x="33" y="56" width="7" height="10" rx="2" fill="#451a03"/>
+                  <line x1="52" y1="72" x2="46" y2="18" stroke="#92400e" stroke-width="3.5" stroke-linecap="round"/>
+                  <polygon points="46,18 43,12 46,8 49,12" fill="#3b82f6"/>
+                  <rect x="29" y="30" width="6" height="7" rx="2" fill="#fde68a"/>
+                  <ellipse cx="32" cy="22" rx="13" ry="14" fill="#fde68a"/>
+                  <ellipse cx="32" cy="20" rx="11" ry="12" fill="#fef3c7"/>
+                  <ellipse cx="32" cy="12" rx="14" ry="8" fill="#a16207"/>
+                  <ellipse cx="32" cy="11" rx="12" ry="7" fill="#b45309"/>
+                  <ellipse cx="32" cy="17" rx="15" ry="4" fill="#92400e"/>
+                  <rect x="22" y="17" width="8" height="6" rx="3" fill="#1d4ed8"/>
+                  <rect x="34" y="17" width="8" height="6" rx="3" fill="#1d4ed8"/>
+                  <ellipse cx="26" cy="24" rx="3" ry="3.5" fill="#1c1917"/>
+                  <ellipse cx="38" cy="24" rx="3" ry="3.5" fill="#1c1917"/>
+                  <circle cx="27" cy="23" r="1.2" fill="white"/>
+                  <circle cx="39" cy="23" r="1.2" fill="white"/>
+                  <path d="M 28 29 Q 32 32 36 29" stroke="#92400e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                </svg>`;
+            }
+            // Lv2: かわのよろい
+            if (lvl === 2) { 
+                return `<svg viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg" class="w-full h-full pixel-corners">
+                  <ellipse cx="32" cy="78" rx="14" ry="3" fill="#00000033"/>
+                  <path d="M 21 34 Q 11 50 13 66 Q 17 58 22 50 Z" fill="#1d4ed8"/>
+                  <path d="M 43 34 Q 53 50 51 66 Q 47 58 42 50 Z" fill="#1e40af"/>
+                  <rect x="21" y="35" width="22" height="23" rx="3" fill="#78350f"/>
+                  <rect x="23" y="35" width="18" height="21" rx="2" fill="#92400e"/>
+                  <rect x="21" y="51" width="22" height="4" rx="1" fill="#451a03"/>
+                  <rect x="29" y="50" width="6" height="6" rx="1" fill="#a16207"/>
+                  <circle cx="32" cy="37" r="3.5" fill="#1d4ed8"/>
+                  <rect x="13" y="35" width="10" height="9" rx="3" fill="#92400e"/>
+                  <rect x="13" y="44" width="8" height="6" rx="2" fill="#fde68a"/>
+                  <rect x="41" y="35" width="10" height="9" rx="3" fill="#92400e"/>
+                  <rect x="43" y="44" width="8" height="6" rx="2" fill="#fde68a"/>
+                  <rect x="50" y="20" width="3" height="18" rx="1.5" fill="#d1d5db"/>
+                  <rect x="47" y="28" width="9" height="3" rx="1" fill="#92400e"/>
+                  <rect x="23" y="56" width="8" height="10" rx="2" fill="#451a03"/>
+                  <rect x="33" y="56" width="8" height="10" rx="2" fill="#451a03"/>
+                  <ellipse cx="32" cy="22" rx="13" ry="14" fill="#fde68a"/>
+                  <ellipse cx="32" cy="12" rx="14" ry="8" fill="#a16207"/>
+                  <ellipse cx="32" cy="17" rx="15" ry="4" fill="#92400e"/>
+                  <rect x="22" y="17" width="8" height="6" rx="3" fill="#1d4ed8"/>
+                  <rect x="34" y="17" width="8" height="6" rx="3" fill="#1d4ed8"/>
+                  <ellipse cx="26" cy="24" rx="3" ry="3.5" fill="#1c1917"/>
+                  <ellipse cx="38" cy="24" rx="3" ry="3.5" fill="#1c1917"/>
+                  <path d="M 28 29 Q 32 32 36 29" stroke="#92400e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                </svg>`;
+            }
+            // Lv3: くさりかたびら
+            if (lvl === 3) { 
+                return `<svg viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg" class="w-full h-full pixel-corners">
+                  <ellipse cx="32" cy="78" rx="15" ry="3" fill="#00000033"/>
+                  <path d="M 20 33 Q 8 52 10 70 Q 15 60 21 50 Z" fill="#1d4ed8"/>
+                  <path d="M 44 33 Q 56 52 54 70 Q 49 60 43 50 Z" fill="#1e40af"/>
+                  <rect x="20" y="34" width="24" height="24" rx="3" fill="#6b7280"/>
+                  <rect x="22" y="34" width="20" height="22" rx="2" fill="#9ca3af"/>
+                  <rect x="20" y="52" width="24" height="4" rx="1" fill="#451a03"/>
+                  <rect x="29" y="51" width="6" height="6" rx="1" fill="#a16207"/>
+                  <circle cx="32" cy="37" r="4" fill="#1d4ed8"/>
+                  <ellipse cx="20" cy="36" rx="5" ry="4" fill="#4b5563"/>
+                  <ellipse cx="44" cy="36" rx="5" ry="4" fill="#4b5563"/>
+                  <rect x="12" y="34" width="10" height="10" rx="3" fill="#9ca3af"/>
+                  <rect x="12" y="44" width="8" height="6" rx="2" fill="#fde68a"/>
+                  <rect x="42" y="34" width="10" height="10" rx="3" fill="#9ca3af"/>
+                  <rect x="44" y="44" width="8" height="6" rx="2" fill="#fde68a"/>
+                  <rect x="50" y="14" width="4" height="24" rx="2" fill="#9ca3af"/>
+                  <rect x="46" y="26" width="12" height="3.5" rx="1.5" fill="#6b7280"/>
+                  <rect x="22" y="56" width="9" height="10" rx="2" fill="#451a03"/>
+                  <rect x="33" y="56" width="9" height="10" rx="2" fill="#451a03"/>
+                  <ellipse cx="32" cy="21" rx="13" ry="14" fill="#fde68a"/>
+                  <ellipse cx="32" cy="11" rx="14" ry="8" fill="#a16207"/>
+                  <rect x="22" y="16" width="8" height="6" rx="3" fill="#1d4ed8"/>
+                  <rect x="34" y="16" width="8" height="6" rx="3" fill="#1d4ed8"/>
+                  <ellipse cx="26" cy="23" rx="3" ry="3.5" fill="#1c1917"/>
+                  <ellipse cx="38" cy="23" rx="3" ry="3.5" fill="#1c1917"/>
+                  <path d="M 28 28 Q 32 31 36 28" stroke="#92400e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                </svg>`;
+            }
+            // Lv4: はがねのよろい
+            if (lvl === 4) { 
+                return `<svg viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg" class="w-full h-full pixel-corners">
+                  <ellipse cx="32" cy="78" rx="15" ry="3" fill="#00000033"/>
+                  <path d="M 20 33 Q 7 54 9 72 Q 14 62 21 52 Z" fill="#b45309"/>
+                  <path d="M 44 33 Q 57 54 55 72 Q 50 62 43 52 Z" fill="#92400e"/>
+                  <rect x="19" y="33" width="26" height="25" rx="3" fill="#374151"/>
+                  <rect x="21" y="33" width="22" height="23" rx="2" fill="#4b5563"/>
+                  <polygon points="32,39 33.5,43 37,43 34.5,45.5 35.5,49 32,47 28.5,49 29.5,45.5 27,43 30.5,43" fill="#fbbf24"/>
+                  <rect x="19" y="52" width="26" height="4" rx="1" fill="#451a03"/>
+                  <rect x="29" y="51" width="6" height="6" rx="1" fill="#fbbf24"/>
+                  <circle cx="32" cy="36" r="4.5" fill="#b45309"/>
+                  <ellipse cx="18" cy="35" rx="6" ry="5" fill="#374151"/>
+                  <ellipse cx="46" cy="35" rx="6" ry="5" fill="#374151"/>
+                  <rect x="11" y="33" width="9" height="11" rx="3" fill="#4b5563"/>
+                  <rect x="11" y="44" width="8" height="7" rx="2" fill="#fde68a"/>
+                  <rect x="44" y="33" width="9" height="11" rx="3" fill="#4b5563"/>
+                  <rect x="45" y="44" width="8" height="7" rx="2" fill="#fde68a"/>
+                  <rect x="50" y="10" width="4.5" height="26" rx="2" fill="#fbbf24"/>
+                  <rect x="46" y="24" width="13" height="4" rx="2" fill="#d97706"/>
+                  <rect x="21" y="56" width="9" height="11" rx="2" fill="#374151"/>
+                  <rect x="34" y="56" width="9" height="11" rx="2" fill="#374151"/>
+                  <ellipse cx="32" cy="20" rx="13" ry="14" fill="#fde68a"/>
+                  <ellipse cx="32" cy="10" rx="14" ry="8" fill="#a16207"/>
+                  <rect x="22" y="15" width="8" height="7" rx="3" fill="#b45309"/>
+                  <rect x="34" y="15" width="8" height="7" rx="3" fill="#b45309"/>
+                  <ellipse cx="26" cy="23" rx="3" ry="3.5" fill="#1c1917"/>
+                  <ellipse cx="38" cy="23" rx="3" ry="3.5" fill="#1c1917"/>
+                  <path d="M 28 28 Q 32 32 36 28" stroke="#92400e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                </svg>`;
+            }
+            // Lv5: でんせつのゆうしゃ
+            return `<svg viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg" class="w-full h-full pixel-corners">
+              <ellipse cx="32" cy="45" rx="30" ry="32" fill="#fbbf24" opacity="0.12"/>
+              <ellipse cx="32" cy="78" rx="16" ry="3.5" fill="#fbbf2444"/>
+              <path d="M 19 32 Q 4 56 6 76 Q 12 64 20 54 Z" fill="#b45309"/>
+              <path d="M 45 32 Q 60 56 58 76 Q 52 64 44 54 Z" fill="#92400e"/>
+              <rect x="18" y="32" width="28" height="26" rx="3" fill="#713f12"/>
+              <rect x="20" y="32" width="24" height="24" rx="2" fill="#92400e"/>
+              <polygon points="32,37 34,42 39,42 35,45 37,50 32,47 27,50 29,45 25,42 30,42" fill="#fbbf24"/>
+              <rect x="18" y="52" width="28" height="4.5" rx="1" fill="#451a03"/>
+              <rect x="28" y="51" width="8" height="7" rx="1.5" fill="#fbbf24"/>
+              <circle cx="32" cy="35" r="5" fill="#b45309"/>
+              <ellipse cx="17" cy="34" rx="7" ry="6" fill="#713f12"/>
+              <ellipse cx="47" cy="34" rx="7" ry="6" fill="#713f12"/>
+              <rect x="9" y="32" width="10" height="12" rx="3" fill="#92400e"/>
+              <rect x="9" y="44" width="9" height="8" rx="2" fill="#fde68a"/>
+              <rect x="45" y="32" width="10" height="12" rx="3" fill="#92400e"/>
+              <rect x="46" y="44" width="9" height="8" rx="2" fill="#fde68a"/>
+              <line x1="56" y1="74" x2="50" y2="10" stroke="#d97706" stroke-width="4" stroke-linecap="round"/>
+              <line x1="56" y1="74" x2="50" y2="10" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+              <polygon points="50,3 46,8 46,14 50,17 54,14 54,8" fill="#3b82f6"/>
+              <rect x="20" y="56" width="10" height="12" rx="2" fill="#713f12"/>
+              <rect x="34" y="56" width="10" height="12" rx="2" fill="#713f12"/>
+              <ellipse cx="32" cy="19" rx="13" ry="14" fill="#fde68a"/>
+              <ellipse cx="32" cy="9" rx="14" ry="8" fill="#a16207"/>
+              <rect x="21" y="14" width="9" height="7" rx="3.5" fill="#b45309"/>
+              <rect x="34" y="14" width="9" height="7" rx="3.5" fill="#b45309"/>
+              <ellipse cx="26" cy="22" rx="3.5" ry="4" fill="#fbbf24"/>
+              <ellipse cx="38" cy="22" rx="3.5" ry="4" fill="#fbbf24"/>
+              <ellipse cx="26" cy="23" rx="2" ry="3" fill="#1c1917"/>
+              <ellipse cx="38" cy="23" rx="2" ry="3" fill="#1c1917"/>
+              <path d="M 27 28 Q 32 33 37 28" stroke="#92400e" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>`;
+        }
+
+        // --- 初期設定 ---
+        function initApp() {
+            document.getElementById('menu-avatar-container').innerHTML = getAvatarSVG(1);
+        }
+
+        // --- ゲーム開始 ---
+        function startGame(mode) {
+            stopOpeningBGM();
+
+            currentMode = mode;
+            level = 1;
+            score = 0;
+            lives = getMaxLives(1); 
+            userInput = '';
+            
+            document.getElementById('screen-menu').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+
+            const modeName = mode === 'addition' ? 'たし算 くりあがり' : 'ひき算 くりさがり';
+            document.getElementById('game-mode-name').innerText = modeName;
+            document.getElementById('operator').innerText = mode === 'addition' ? '+' : '-';
+
+            hideHintForce();
+
+            updateStatusUI();
+            generateQuestion();
+        }
+
+        function returnToMenu() {
+            stopQuestionTimer();
+            level = 1;
+            score = 0;
+            lives = getMaxLives(1);
+            userInput = '';
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-menu').classList.remove('hidden');
+            document.getElementById('menu-avatar-container').innerHTML = getAvatarSVG(1);
+            startOpeningBGM();
+        }
+
+        // さくらんぼヒント開閉トグル
+        function toggleHint() {
+            const wrapper = document.getElementById('hint-box-wrapper');
+            const btn = document.getElementById('btn-hint');
+            hintVisible = !hintVisible;
+            if (hintVisible) {
+                wrapper.classList.remove('hidden');
+                btn.innerText = "👁️ ヒントをかくす";
+                btn.classList.add('bg-indigo-900');
+            } else {
+                wrapper.classList.add('hidden');
+                btn.innerText = "💡 さくらんぼヒントをみる";
+                btn.classList.remove('bg-indigo-900');
+            }
+            playTone(800, 'sine', 0.05);
+        }
+
+        function hideHintForce() {
+            hintVisible = false;
+            document.getElementById('hint-box-wrapper').classList.add('hidden');
+            document.getElementById('btn-hint').innerText = "💡 さくらんぼヒントをみる";
+            document.getElementById('btn-hint').classList.remove('bg-indigo-900');
+        }
+
+        // ライフゲージ (HP)
+        function updateHeartGauge() {
+            const container = document.getElementById('heart-container');
+            container.innerHTML = '';
+            const max = getMaxLives(level);
+            for (let i = 0; i < max; i++) {
+                if (i < lives) {
+                    container.innerHTML += '<span class="text-rose-500 animate-pulse">❤️</span>';
+                } else {
+                    container.innerHTML += '<span class="text-gray-600">🖤</span>';
+                }
+            }
+        }
+
+        // ステータス更新
+        function updateStatusUI() {
+            document.getElementById('game-level').innerText = level;
+            document.getElementById('game-score').innerText = `${score} / 10`;
+            document.getElementById('avatar-level').innerText = level;
+
+            updateHeartGauge();
+
+            document.getElementById('player-container').innerHTML = getAvatarSVG(level);
+            
+            let weaponName = "きのつえ";
+            if (level === 2) weaponName = "かわのよろい ＆ たんけん";
+            if (level === 3) weaponName = "くさりかたびら ＆ てつのつるぎ";
+            if (level === 4) weaponName = "はがねのよろい ＆ はがねのつるぎ";
+            if (level === 5) weaponName = "でんせつのよろい ＆ ひかりのつるぎ ✨";
+            document.getElementById('weapon-name').innerText = weaponName;
+
+            const monsterForLevel = {
+                1: { name: 'スター・スライム',        svgId: 'slime-star' },
+                2: { name: 'ドラキー・メテオ',        svgId: 'drakey-meteor' },
+                3: { name: 'ゴーレム・ストーン',      svgId: 'golem-stone' },
+                4: { name: 'デビル・コメット',        svgId: 'devil-comet' },
+                5: { name: 'カオス・メテオカイザー',   svgId: 'chaos-kaiser' }
+            };
+            const selectedMonster = monsterForLevel[Math.min(level, 5)];
+
+            document.getElementById('monster-container').innerHTML = getMonsterSVG(selectedMonster.svgId);
+            document.getElementById('monster-name').innerText = selectedMonster.name;
+        }
+
+        // --- 10秒/5秒 カウントダウンタイマーの設計 ---
+        function startQuestionTimer() {
+            stopQuestionTimer();
+
+            // Lv5かつスコア5以上の時は制限時間を「5秒」に、それ以外は「10秒」に設定
+            if (level === 5 && score >= 5) {
+                maxTime = 5;
+            } else {
+                maxTime = 10;
+            }
+
+            timeLeft = maxTime;
+            updateTimerUI();
+            
+            timerInterval = setInterval(() => {
+                timeLeft -= 0.1; // 100msごとに減少
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    stopQuestionTimer();
+                    handleTimeOut();
+                }
+                updateTimerUI();
+            }, 100);
+        }
+
+        function stopQuestionTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function updateTimerUI() {
+            const bar = document.getElementById('timer-bar');
+            const text = document.getElementById('timer-text');
+            if (!bar || !text) return;
+
+            // 最大制限時間(maxTime)に基づいてパーセンテージを同期
+            const percentage = (timeLeft / maxTime) * 100;
+            bar.style.width = `${percentage}%`;
+
+            // 残り秒数の割合に応じてタイマーバーの色を変化
+            const ratio = timeLeft / maxTime;
+            if (ratio > 0.5) {
+                bar.className = "bg-green-500 h-full transition-all duration-100 ease-linear";
+            } else if (ratio > 0.25) {
+                bar.className = "bg-yellow-500 h-full transition-all duration-100 ease-linear";
+            } else {
+                bar.className = "bg-red-600 h-full transition-all duration-100 ease-linear";
+            }
+
+            // タイマーのテキスト表示を動的に「10」または「5」秒からカウントダウン表示
+            text.innerText = `じかん：${Math.ceil(timeLeft)} びょう`;
+        }
+
+        // タイムアウトペナルティ処理
+        function handleTimeOut() {
+            playWrongSound();
+            
+            lives--;
+
+            // ダメージ画面揺れ
+            const battleStage = document.getElementById('battle-stage');
+            battleStage.classList.add('shake');
+            setTimeout(() => battleStage.classList.remove('shake'), 400);
+
+            // 回答エリアにタイムアウトを表示
+            const ansBox = document.getElementById('answer-box');
+            ansBox.className = "bg-red-950 px-4 py-1.5 rounded border-2 border-solid border-red-500 text-red-500 animate-pulse min-w-[70px]";
+            ansBox.innerText = "×";
+            
+            // 特殊エフェクト表示
+            const effect = document.getElementById('action-effect');
+            effect.style.backgroundColor = 'rgba(239, 68, 68, 0.6)'; 
+            effect.innerText = "⏰ じかんぎれ！\nダメージ！";
+            effect.classList.remove('opacity-0');
+            effect.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                effect.classList.remove('opacity-100');
+                effect.classList.add('opacity-0');
+            }, 800);
+
+            userInput = '';
+            
+            if (lives <= 0) {
+                setTimeout(triggerGameOver, 600);
+            } else {
+                updateStatusUI();
+                // 少しだけ待って自動的に次の問題へ移行
+                setTimeout(() => {
+                    ansBox.innerText = '？';
+                    ansBox.className = "bg-gray-950 px-4 py-1.5 rounded border-2 border-dashed border-yellow-500 text-yellow-400 min-w-[70px]";
+                    generateQuestion();
+                }, 1200);
+            }
+        }
+
+        // --- 問題の生成 ---
+        function generateQuestion() {
+            userInput = '';
+            document.getElementById('answer-box').innerText = '？';
+            document.getElementById('answer-box').className = "bg-gray-950 px-4 py-1.5 rounded border-2 border-dashed border-yellow-500 text-yellow-400 min-w-[70px]";
+
+            hideHintForce();
+
+            if (currentMode === 'addition') {
+                let n1, n2;
+                do {
+                    n1 = Math.floor(Math.random() * 8) + 2; 
+                    n2 = Math.floor(Math.random() * 8) + 2; 
+                } while (n1 + n2 <= 10 || n1 + n2 >= 20 || (n1 + n2) % 10 >= Math.min(n1, n2)); 
+
+                currentNum1 = n1;
+                currentNum2 = n2;
+
+                const neededFor10 = 10 - n1;
+                const leftover = n2 - neededFor10;
+                
+                document.getElementById('hint-box').innerHTML = `
+                    <svg viewBox="0 0 220 70" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:220px;">
+                      <text x="10" y="20" font-size="16" fill="#fbbf24" font-family="sans-serif" font-weight="bold">${n1}</text>
+                      <text x="45" y="20" font-size="16" fill="#fff" font-family="sans-serif">+</text>
+                      <text x="60" y="20" font-size="16" fill="#fbbf24" font-family="sans-serif" font-weight="bold">${n2}</text>
+                      <line x1="65" y1="22" x2="58" y2="38" stroke="#f87171" stroke-width="1.5"/>
+                      <line x1="70" y1="22" x2="82" y2="38" stroke="#86efac" stroke-width="1.5"/>
+                      <ellipse cx="52" cy="46" rx="14" ry="11" fill="#7f1d1d" stroke="#f87171" stroke-width="1.5"/>
+                      <text x="52" y="50" text-anchor="middle" font-size="13" fill="#f87171" font-family="sans-serif">${neededFor10}</text>
+                      <ellipse cx="88" cy="46" rx="14" ry="11" fill="#14532d" stroke="#86efac" stroke-width="1.5"/>
+                      <text x="88" y="50" text-anchor="middle" font-size="13" fill="#86efac" font-family="sans-serif">${leftover}</text>
+                      <text x="110" y="20" font-size="16" fill="#fff" font-family="sans-serif">→</text>
+                      <text x="130" y="20" font-size="16" fill="#fbbf24" font-family="sans-serif" font-weight="bold">10</text>
+                      <text x="155" y="20" font-size="16" fill="#fff" font-family="sans-serif">+</text>
+                      <text x="170" y="20" font-size="16" fill="#86efac" font-family="sans-serif" font-weight="bold">${leftover}</text>
+                    </svg>
+                `;
+
+            } else {
+                let n1, n2;
+                do {
+                    n1 = Math.floor(Math.random() * 9) + 11; // 11〜19
+                    n2 = Math.floor(Math.random() * 8) + 2;  // 2〜9
+                } while (n1 - n2 >= 10 || n1 - n2 <= 0 || (n1 % 10) >= n2); 
+
+                currentNum1 = n1;
+                currentNum2 = n2;
+
+                const ones = n1 - 10;
+                const subtractFrom10 = 10 - n2;
+                
+                document.getElementById('hint-box').innerHTML = `
+                    <svg viewBox="0 0 220 70" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:220px;">
+                      <text x="10" y="20" font-size="16" fill="#fbbf24" font-family="sans-serif" font-weight="bold">${n1}</text>
+                      <line x1="18" y1="22" x2="12" y2="38" stroke="#f87171" stroke-width="1.5"/>
+                      <line x1="22" y1="22" x2="36" y2="38" stroke="#86efac" stroke-width="1.5"/>
+                      <ellipse cx="8" cy="46" rx="13" ry="11" fill="#7f1d1d" stroke="#f87171" stroke-width="1.5"/>
+                      <text x="8" y="50" text-anchor="middle" font-size="13" fill="#f87171" font-family="sans-serif">10</text>
+                      <ellipse cx="42" cy="46" rx="13" ry="11" fill="#14532d" stroke="#86efac" stroke-width="1.5"/>
+                      <text x="42" y="50" text-anchor="middle" font-size="13" fill="#86efac" font-family="sans-serif">${ones}</text>
+                      <text x="62" y="20" font-size="16" fill="#fff" font-family="sans-serif">-</text>
+                      <text x="78" y="20" font-size="16" fill="#fbbf24" font-family="sans-serif" font-weight="bold">${n2}</text>
+                      <text x="100" y="20" font-size="16" fill="#fff" font-family="sans-serif">→</text>
+                      <text x="120" y="20" font-size="16" fill="#f87171" font-family="sans-serif">10-${n2}</text>
+                      <text x="120" y="42" font-size="16" fill="#fbbf24" font-family="sans-serif" font-weight="bold">=${subtractFrom10}</text>
+                      <text x="160" y="20" font-size="16" fill="#fff" font-family="sans-serif">+</text>
+                      <text x="175" y="20" font-size="16" fill="#86efac" font-family="sans-serif" font-weight="bold">${ones}</text>
+                    </svg>
+                `;
+            }
+
+            document.getElementById('num1').innerText = currentNum1;
+            document.getElementById('num2').innerText = currentNum2;
+
+            // 新たな問題ごとに、タイマーの作動を開始する（ここで5秒/10秒の判定が行われます）
+            startQuestionTimer();
+        }
+
+        // --- テンキー入力 ---
+        function pressKey(key) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (key === 'C') {
+                userInput = '';
+            } else {
+                if (userInput.length < 2) { 
+                    userInput += key;
+                }
+            }
+            
+            const ansBox = document.getElementById('answer-box');
+            if (userInput === '') {
+                ansBox.innerText = '？';
+                ansBox.className = "bg-gray-950 px-4 py-1.5 rounded border-2 border-dashed border-yellow-500 text-yellow-400 min-w-[70px]";
+            } else {
+                ansBox.innerText = userInput;
+                ansBox.className = "bg-gray-950 px-4 py-1.5 rounded border-2 border-solid border-white text-white min-w-[70px]";
+            }
+
+            playTone(800, 'sine', 0.05);
+        }
+
+        function playTone(freq, type, duration, delay = 0, vol = 0.08) {
+            playToneWithRelease(freq, type, duration, delay, vol);
+        }
+
+        // 答え合わせ
+        function checkAnswer() {
+            if (userInput === '') return;
+
+            // 答えボタンが押されたので一度タイマーを一時停止
+            stopQuestionTimer();
+
+            const userAns = parseInt(userInput);
+            const correctAns = currentMode === 'addition' ? (currentNum1 + currentNum2) : (currentNum1 - currentNum2);
+
+            if (userAns === correctAns) {
+                handleCorrect();
+            } else {
+                handleWrong();
+            }
+        }
+
+        function handleCorrect() {
+            playCorrectSound();
+            
+            const effect = document.getElementById('action-effect');
+            effect.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+            effect.innerText = "💥 こうげき！";
+            effect.classList.remove('opacity-0');
+            effect.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                effect.classList.remove('opacity-100');
+                effect.classList.add('opacity-0');
+            }, 150);
+
+            score++;
+
+            if (score >= 10) {
+                if (level >= 5) {
+                    triggerGameClear();
+                    return;
+                }
+                level++;
+                score = 0;
+                lives = getMaxLives(level); 
+                triggerLevelUp();
+            } else {
+                updateStatusUI();
+                setTimeout(generateQuestion, 800);
+            }
+        }
+
+        function handleWrong() {
+            playWrongSound();
+            
+            lives--;
+
+            const battleStage = document.getElementById('battle-stage');
+            battleStage.classList.add('shake');
+            setTimeout(() => battleStage.classList.remove('shake'), 400);
+
+            const ansBox = document.getElementById('answer-box');
+            ansBox.className = "bg-red-950 px-4 py-1.5 rounded border-2 border-solid border-red-500 text-red-500 animate-pulse min-w-[70px]";
+            
+            const effect = document.getElementById('action-effect');
+            effect.style.backgroundColor = 'rgba(239, 68, 68, 0.6)'; 
+            effect.innerText = "💥 てき の こうげき！\nダメージ！";
+            effect.classList.remove('opacity-0');
+            effect.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                effect.classList.remove('opacity-100');
+                effect.classList.add('opacity-0');
+            }, 500);
+
+            userInput = '';
+            
+            if (lives <= 0) {
+                setTimeout(triggerGameOver, 600);
+            } else {
+                updateStatusUI();
+                setTimeout(() => {
+                    ansBox.innerText = '？';
+                    ansBox.className = "bg-gray-950 px-4 py-1.5 rounded border-2 border-dashed border-yellow-500 text-yellow-400 min-w-[70px]";
+                    // 間違えた後も、もう一度タイマーをリスタート（5秒制限なら5秒でリスタートします）
+                    startQuestionTimer();
+                }, 1000);
+            }
+        }
+
+        // ファンファーレ制御
+        function switchLevelUpMusic(key) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            switch(key) {
+                case 'dq':
+                    playDQFanfare();
+                    break;
+                case 'ff':
+                    playFFFanfare();
+                    break;
+                case 'mario':
+                    playMarioFanfare();
+                    break;
+                case 'zelda':
+                    playZeldaFanfare();
+                    break;
+                case 'ode':
+                    playOdeToJoyBGM();
+                    break;
+                default:
+                    playDQFanfare();
+            }
+        }
+
+        function replayCurrentMusic() {
+            const currentSelected = document.getElementById('fanfare-select').value;
+            switchLevelUpMusic(currentSelected);
+        }
+
+        // レベルアップ
+        function triggerLevelUp() {
+            stopQuestionTimer();
+            isLevelUpModalOpen = true;
+
+            const fanfareSelector = document.getElementById('fanfare-select');
+            let initialMusic = 'dq';
+            if (level === 2) initialMusic = 'ff';
+            if (level === 3) initialMusic = 'zelda';
+            if (level === 4) initialMusic = 'mario';
+
+            fanfareSelector.value = initialMusic;
+            switchLevelUpMusic(initialMusic);
+
+            document.getElementById('levelup-banner').innerText = "LEVEL UP!!";
+            document.getElementById('levelup-banner').className = "text-2xl md:text-3xl font-bold text-yellow-400 animate-bounce";
+
+            document.getElementById('modal-avatar-container').innerHTML = getAvatarSVG(level);
+            document.getElementById('levelup-msg').innerText = `レベルが ${level} にあがった！`;
+            
+            let subMsg = "そうびが パワーアップ！ HPも ぜんかいふくした！";
+            if (level === 2) subMsg = "🗡️「かわのよろい」と「たんけん」をてにいれた！ HPもぜんかいふく！";
+            if (level === 3) subMsg = "🛡️「くさりかたびら」と「てつのつるぎ」をてにいれた！ HPもぜんかいふく！";
+            if (level === 4) subMsg = "⚔️「はがねのよろい」と「はがねのつるぎ」をてにいれた！ HPもぜんかいふく！";
+            
+            document.getElementById('levelup-submsg').innerText = subMsg;
+
+            document.getElementById('btn-next-level').classList.remove('hidden');
+            document.getElementById('btn-back-to-start').classList.add('hidden');
+
+            document.getElementById('levelup-modal').classList.remove('hidden');
+        }
+
+        // ゲームクリア（Lv5達成）
+        function triggerGameClear() {
+            stopQuestionTimer();
+            stopOpeningBGM(); 
+            playOdeToJoyBGM(); 
+            
+            // ファンファーレ後に自動でエンディング曲をスタート
+            setTimeout(() => { 
+                if (isLevelUpModalOpen) {
+                    playEndingBGM(); 
+                }
+            }, 3400);
+
+            document.getElementById('levelup-banner').innerText = "🎊 ぜんクリア！！ 🎊";
+            document.getElementById('levelup-banner').className = "text-xl md:text-2xl font-bold text-yellow-400 animate-pulse";
+            document.getElementById('modal-avatar-container').innerHTML = getAvatarSVG(5);
+            document.getElementById('levelup-msg').innerText = "すべての てきを たおした！！";
+            document.getElementById('levelup-submsg').innerText = "✨「ひかりのつるぎ」と「でんせつのよろい」をてにいれた！ きみは ほんとうの ゆうしゃだ！";
+
+            document.getElementById('btn-next-level').classList.add('hidden');
+            document.getElementById('btn-back-to-start').classList.remove('hidden');
+
+            isLevelUpModalOpen = true;
+            document.getElementById('levelup-modal').classList.remove('hidden');
+        }
+
+        function backToStart() {
+            document.getElementById('btn-next-level').classList.remove('hidden');
+            document.getElementById('btn-back-to-start').classList.add('hidden');
+            document.getElementById('levelup-modal').classList.add('hidden');
+            isLevelUpModalOpen = false;
+            clearAllSounds();
+            returnToMenu();
+        }
+
+        function closeLevelUpModal() {
+            clearAllSounds();
+            isLevelUpModalOpen = false;
+            document.getElementById('levelup-modal').classList.add('hidden');
+            updateStatusUI();
+            generateQuestion();
+        }
+
+        // ゲームオーバー
+        function triggerGameOver() {
+            stopQuestionTimer();
+            playGameOverBGM();
+            document.getElementById('gameover-modal').classList.remove('hidden');
+        }
+
+        function resetGameToMenu() {
+            document.getElementById('gameover-modal').classList.add('hidden');
+            clearAllSounds();
+            returnToMenu();
+        }
+
+        window.onload = function() {
+            initApp();
+        }
+    </script>
+</body>
+</html>
